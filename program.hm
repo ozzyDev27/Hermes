@@ -1,0 +1,72 @@
+$main //which class to instantiate on start
+#math //imports the math library
+#random
+@otherprogram.hm //imports functions from another file
+
+class main {
+    print("Hi!\n")
+    print("What is your favorite color?\n> ")
+    str favColor = input("\n")
+    print("{favColor[::-1]}\n") //python list comprehension yippee
+
+    int number = 0
+    while (number<1 or number>10) {
+        print("What is a number from 1 to 10?\n> ")
+        number = int(input("\n"))
+    }
+    print("{coolMath(num)}")
+    for (int i in 10) {
+        print("{i}")
+    }
+    print("\n")
+    for (str i in "Hello world!") {
+        print(i)
+    }
+    
+    str filepath = "names.txt"
+    map jNames
+    str fileContents = file.open(filepath).read()
+    str[] fileContents = fileContents.split("\n")
+    for (str name in fileContents) {
+        jNames[name] = name[0].lower=="j"
+    }
+    
+    names = jNames.keys()
+    names.removeDuplicates()
+
+    bool[] coins
+    for (int i in 100) {
+        coins.append(bool(random.rng(0,1)))
+        print("{coins[-1]?1:0}")
+    }
+
+    print("\n{round(float([int i for i in coins].sum()) / coins.len(), 2)}")
+
+    print(readFile("example.txt").split("\n")[0]) //prints first line of example.txt
+
+    print(exampleFunction(5)) //this function was imported from otherprogram.hm
+
+    firstDog = dog()
+    firstDog.name = "Cat"
+    secondDog = dog()
+    secondDog.age = 5
+    print(firstDog.name)
+    print(secondDog.dogYearsToHumanYears(secondDog.age))
+    
+
+    fn coolMath(int num) {
+        num++
+        num*=2
+        num=int(ceil(math.sqrt(num)))
+        return num
+    }
+}
+class dog {
+    str name
+    int age
+    str color
+
+    fn dogYearsToHumanYears(int dogYears) {
+        return dogYears * 7
+    }
+}
