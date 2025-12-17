@@ -561,10 +561,7 @@ private:
     }
     
 public:
-    Interpreter() {
-        random_device rd;
-        rng.seed(rd());
-    }
+    Interpreter() { rng.seed(random_device()()); }
     
     void loadProgram(const string& filename) {
         ifstream file(filename);
@@ -575,50 +572,26 @@ public:
         
         vector<string> lines;
         string line;
-        while (getline(file, line)) {
-            lines.push_back(line);
-        }
+        while (getline(file, line)) lines.push_back(line);
         file.close();
         
-        // Parse the program
         for (size_t i = 0; i < lines.size(); i++) {
             string ln = trim(removeComments(lines[i]));
+            if (ln.find("$") == 0) mainClass = trim(ln.substr(1));
+            if (ln.find("#") == 0 || ln.find("@") == 0) continue;
             
-            // Parse main class declaration
-            if (ln.find("$") == 0) {
-                mainClass = trim(ln.substr(1));
-            }
-            
-            // Parse imports (simplified - not fully implemented)
-            if (ln.find("#") == 0 || ln.find("@") == 0) {
-                // Import handling would go here
-                continue;
-            }
-            
-            // Parse class definitions
             if (ln.find("class ") == 0) {
                 size_t nameEnd = ln.find(" {");
                 if (nameEnd == string::npos) nameEnd = ln.find("{");
                 string className = trim(ln.substr(6, nameEnd - 6));
-                
                 ClassDefinition classDef(className);
                 i++;
-                
-                // Parse class body
                 int braceCount = 1;
-                vector<string> classBody;
-                
                 while (i < lines.size() && braceCount > 0) {
-                    string classLine = lines[i];
-                    if (classLine.find("{") != string::npos) braceCount++;
-                    if (classLine.find("}") != string::npos) {
-                        braceCount--;
-                        if (braceCount == 0) break;
-                    }
-                    classBody.push_back(classLine);
+                    if (lines[i].find("{") != string::npos) braceCount++;
+                    if (lines[i].find("}") != string::npos && --braceCount == 0) break;
                     i++;
                 }
-                
                 classes[className] = classDef;
             }
         }
@@ -630,53 +603,28 @@ public:
             return;
         }
         
-        // Load the main class and execute it
         loadProgram("program.hm");
-        
-        // Re-parse to execute main class
         ifstream file("program.hm");
         vector<string> lines;
         string line;
-        while (getline(file, line)) {
-            lines.push_back(line);
-        }
+        while (getline(file, line)) lines.push_back(line);
         file.close();
         
-        // Find and execute main class
-        bool inMainClass = false;
         vector<string> mainClassBody;
-        
         for (size_t i = 0; i < lines.size(); i++) {
-            string ln = trim(removeComments(lines[i]));
-            
-            if (ln.find("class " + mainClass) == 0) {
-                inMainClass = true;
+            if (trim(removeComments(lines[i])).find("class " + mainClass) == 0) {
                 i++;
                 int braceCount = 1;
-                
                 while (i < lines.size() && braceCount > 0) {
-                    string classLine = lines[i];
-                    if (classLine.find("{") != string::npos) braceCount++;
-                    if (classLine.find("}") != string::npos) {
-                        braceCount--;
-                        if (braceCount == 0) break;
-                    }
+                    if (lines[i].find("{") != string::npos) braceCount++;
+                    if (lines[i].find("}") != string::npos && --braceCount == 0) break;
                     
-                    // Skip function definitions in first pass
-                    string trimmedLine = trim(removeComments(classLine));
-                    if (trimmedLine.find("fn ") != 0) {
-                        mainClassBody.push_back(classLine);
+                    if (trim(removeComments(lines[i])).find("fn ") != 0) {
+                        mainClassBody.push_back(lines[i]);
                     } else {
-                        // Skip function body
                         int fnBraceCount = 0;
-                        while (i < lines.size()) {
-                            if (lines[i].find("{") != string::npos) {
-                                fnBraceCount++;
-                                break;
-                            }
-                            i++;
-                        }
-                        i++;
+                        while (i < lines.size() && lines[i].find("{") == string::npos) i++;
+                        if (i < lines.size()) { fnBraceCount++; i++; }
                         while (i < lines.size() && fnBraceCount > 0) {
                             if (lines[i].find("{") != string::npos) fnBraceCount++;
                             if (lines[i].find("}") != string::npos) fnBraceCount--;
@@ -690,7 +638,6 @@ public:
             }
         }
         
-        // Execute main class body
         size_t idx = 0;
         executeBlock(mainClassBody, idx);
     }
@@ -700,6 +647,4 @@ int main() {
     Interpreter interpreter;
     interpreter.loadProgram("program.hm");
     interpreter.run();
-    
-    return 0;
 }
