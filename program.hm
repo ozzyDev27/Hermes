@@ -43,6 +43,7 @@ class main {
     print("\n{round(float([int i for i in coins].sum()) / coins.len(), 2)}")
 
     print(readFile("example.txt").split("\n")[0]) //prints first line of example.txt
+    // btw, readFile is abstracted - opens the file, returns as a string, closes file
 
     print(exampleFunction(5)) //this function was imported from otherprogram.hm
 

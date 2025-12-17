@@ -1,5 +1,6 @@
 @echo off
-gcc main.c -o Hermes
+g++ main.cpp -o Hermes
 if %errorlevel% equ 0 (
+    echo yippee
     .\Hermes
 )
